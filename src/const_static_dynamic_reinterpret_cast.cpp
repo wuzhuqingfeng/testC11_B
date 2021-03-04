@@ -205,7 +205,7 @@ void test()
 	const_cast
 	常成员函数中去除this指针的const属性
 */
-#if 0
+#if 1
 class CTest
 {
 public:
@@ -221,29 +221,33 @@ public:
 		在const成员函数中,this的类型是一个指向const类类型对象的 const指针,
 		既不能改变this所指向的对象,也不能改变this所保存的地址
 	*/
-	void foo(int n) const// const 修饰的是this  this *const ==> const this *const
+	void foo(int n) const// const 修饰的是this  <==> void foo(const CTest * pThis)
 	{
 		{
 			//m_i = n;//error C3490: 'm_i' cannot be modified because it is being accessed through a const object
 		}
 
 		{	
-			const_cast<CTest*>(this)->m_i = n;//将const this *const ==.> this *const
+			const_cast<CTest*>(this)->m_i = n;//将const CTest * pThis  指针所指向的内容不能改变
 			std::cout << "m_i = " << m_i << std::endl;
 		}
 		
 		{
 			//myPrint();//error C2662: 'void CTest::myPrint(void)': cannot convert 'this' pointer from 'const CTest' to 'CTest &'
+			//this->myP
+			//myPrint()的函数原型为                   <==>  void myPrint(CTest* pThis) 
+			//在const成员函数中 this指针是  const CTest* pThis    而 普通的非const 成员函数myPrint 是 void myPrint(CTest* pThis)
+			//存在类型不匹配的情况 const CTest* pThis --> CTest* pThis   编译器 from 'const CTest' to 'CTest &'
 			const_cast<CTest*>(this)->myPrint();
 		}
 	}
 
 	/*
-		在普通的非const 成员函数中，this的类型是一个指向类类型的const指针,即this是常指针
-		等价于 this  <==>  CTest * const
+		在普通的非const 成员函数中，this的类型是一个指向类类型的const指针,
+		等价于 this  <==>  CTest *
 		可以改变this所指向的值,但不能改变this所保存的地址
 	*/
-	void myPrint()
+	void myPrint() //<==>     void foo(const CTest* pThis) -->   void myPrint(CTest* pThis)  
 	{
 		std::cout << "myPrint(）m_i = " << m_i << std::endl;
 	}
